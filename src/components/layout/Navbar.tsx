@@ -1,5 +1,3 @@
-
-
 interface NavProps {
     darkMode: boolean
     setDarkMode: (value: boolean) => void
