@@ -13,6 +13,11 @@ function App() {
   )
   const [isResumeOpen, setIsResumeOpen] = useState(false)
 
+  const handleThemeToggle = () => {
+    setDarkMode(!darkMode)
+    sessionStorage.setItem('darkMode', (!darkMode).toString())
+  }
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -34,9 +39,8 @@ function App() {
 
   return (
     <div className={darkMode ? 'dark-mode' : ''} id="app">
-      <Nav darkMode={darkMode} setDarkMode={setDarkMode} />
+      <Nav darkMode={darkMode} onToggleTheme={handleThemeToggle} />
 
-      {/* Pass resume opener to Summary */}
       <Summary onOpenResume={() => setIsResumeOpen(true)} />
 
       <About />
@@ -44,7 +48,6 @@ function App() {
       <Projects />
       <Contact />
 
-      {/* Resume Modal */}
       <ResumeViewer isOpen={isResumeOpen} onClose={() => setIsResumeOpen(false)} />
     </div>
   )

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ReactTyped } from 'react-typed'
+import { HeroRobot } from '../ui/HeroRobot'
 
 interface SummaryProps {
     onOpenResume?: () => void
@@ -76,14 +77,14 @@ export function Summary({ onOpenResume }: SummaryProps) {
                 </div>
             </div>
 
-            {/* Profile Picture */}
+            {/* Interactive Robot */}
             <div className="pic_container col-lg-6 col-sm-12">
-                <div className="pic_container_inner" data-aos="fade-left" data-aos-duration="1000">
-                    <div className="green-bg"></div>
-                    <img
-                        src="https://avatars.githubusercontent.com/u/77441789?v=4"
-                        alt="Prateek Gaur"
-                    />
+                <div
+                    className="pic_container_inner flex items-center justify-center"
+                    data-aos="fade-left"
+                    data-aos-duration="1000"
+                >
+                    <HeroRobot size={300} />
                 </div>
             </div>
         </section>

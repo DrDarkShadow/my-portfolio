@@ -1,6 +1,6 @@
 interface NavProps {
     darkMode: boolean
-    setDarkMode: (value: boolean) => void
+    onToggleTheme: () => void
 }
 
 const navItems = [
@@ -11,15 +11,10 @@ const navItems = [
     { name: 'Contact', target: 'contact' },
 ]
 
-export function Nav({ darkMode, setDarkMode }: NavProps) {
+export function Nav({ darkMode, onToggleTheme }: NavProps) {
     const scrollToSection = (id: string) => {
         const element = document.getElementById(id)
         element?.scrollIntoView({ behavior: 'smooth' })
-    }
-
-    const toggleDarkMode = () => {
-        setDarkMode(!darkMode)
-        sessionStorage.setItem('darkMode', (!darkMode).toString())
     }
 
     return (
@@ -38,7 +33,7 @@ export function Nav({ darkMode, setDarkMode }: NavProps) {
                             id="checkbox"
                             className="checkbox"
                             checked={darkMode}
-                            onChange={toggleDarkMode}
+                            onChange={onToggleTheme}
                         />
                         <label htmlFor="checkbox" className="checkbox-label">
                             <i className="fas fa-moon"></i>
