@@ -103,7 +103,7 @@ export function Hero() {
                         className="flex gap-4 justify-center"
                     >
                         {[
-                            { href: 'https://www.linkedin.com/in/prateek-gaur-3099a7228/', icon: Linkedin, label: 'LinkedIn' },
+                            { href: 'https://www.linkedin.com/in/prateekgaur1609/', icon: Linkedin, label: 'LinkedIn' },
                             { href: 'https://github.com/DrDarkShadow', icon: Github, label: 'GitHub' },
                             { href: 'mailto:gaur.prateek.1609@gmail.com', icon: Mail, label: 'Email' },
                         ].map((social) => (

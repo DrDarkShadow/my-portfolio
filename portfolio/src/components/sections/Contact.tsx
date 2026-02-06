@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import { Heading } from '../ui/Heading'
 
 export function Contact() {
@@ -36,19 +36,12 @@ export function Contact() {
                                 <p>Greater Noida, India</p>
                             </div>
                         </div>
-                        <div className="contact-info-item">
-                            <i className="fa-solid fa-phone"></i>
-                            <div>
-                                <h5>Phone</h5>
-                                <p>+91 9311352016</p>
-                            </div>
-                        </div>
                     </div>
 
                     <div id="socials-container" style={{ marginTop: '30px', justifyContent: 'flex-start' }}>
                         <i
                             className="fa-brands fa-linkedin icon"
-                            onClick={() => window.open('https://www.linkedin.com/in/prateek-gaur-3099a7228/', '_blank')}
+                            onClick={() => window.open('https://www.linkedin.com/in/prateekgaur1609/', '_blank')}
                         />
                         <i
                             className="fa-brands fa-github icon"

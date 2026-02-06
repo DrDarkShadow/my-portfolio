@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react'
 import { ReactTyped } from 'react-typed'
 
-export function Summary() {
+interface SummaryProps {
+    onOpenResume?: () => void
+}
+
+export function Summary({ onOpenResume }: SummaryProps) {
     const [animate, setAnimate] = useState(false)
 
     useEffect(() => {
@@ -48,7 +52,7 @@ export function Summary() {
                 <div className="btn-container mt-3">
                     <button
                         className="btn btn-color-2"
-                        onClick={() => window.open('https://drive.google.com/file/d/YOUR_RESUME_ID/view', '_blank')}
+                        onClick={onOpenResume ? onOpenResume : () => window.open('/resume.pdf', '_blank')}
                     >
                         View Resume
                     </button>
@@ -63,7 +67,7 @@ export function Summary() {
                 <div id="socials-container">
                     <i
                         className="fa-brands fa-linkedin icon"
-                        onClick={() => redirectTo('https://www.linkedin.com/in/prateek-gaur-3099a7228/')}
+                        onClick={() => redirectTo('https://www.linkedin.com/in/prateekgaur1609/')}
                     />
                     <i
                         className="fa-brands fa-github icon"
