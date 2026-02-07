@@ -82,13 +82,6 @@ export function HeroRobot({ size = 280 }: HeroRobotProps) {
         }
     }
 
-    const handleKeyPress = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter') {
-            e.preventDefault()
-            handleSend()
-        }
-    }
-
     return (
         <div className="flex flex-col items-center">
             <motion.div

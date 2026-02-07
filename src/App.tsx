@@ -6,6 +6,7 @@ import { Skills } from './components/sections/Skills'
 import { Projects } from './components/sections/Projects'
 import { Contact } from './components/sections/Contact'
 import { ResumeViewer } from './components/resume/ResumeViewer'
+import { NeuralScrollBackground } from './components/ui/NeuralScrollBackground'
 
 function App() {
   const [darkMode, setDarkMode] = useState(
@@ -39,6 +40,7 @@ function App() {
 
   return (
     <div className={darkMode ? 'dark-mode' : ''} id="app">
+      <NeuralScrollBackground />
       <Nav darkMode={darkMode} onToggleTheme={handleThemeToggle} />
 
       <Summary onOpenResume={() => setIsResumeOpen(true)} />

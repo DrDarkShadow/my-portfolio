@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import { ReactTyped } from 'react-typed'
 import { HeroRobot } from '../ui/HeroRobot'
 
@@ -7,12 +6,6 @@ interface SummaryProps {
 }
 
 export function Summary({ onOpenResume }: SummaryProps) {
-    const [animate, setAnimate] = useState(false)
-
-    useEffect(() => {
-        setAnimate(true)
-    }, [])
-
     const scrollToSection = (id: string) => {
         document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
     }
@@ -25,7 +18,7 @@ export function Summary({ onOpenResume }: SummaryProps) {
         <section id="summary" className="section_1 row">
             {/* Text Content */}
             <div
-                className={`section__text col-lg-6 col-sm-12 ${animate ? 'aos-animate' : ''}`}
+                className="section__text col-lg-6 col-sm-12"
                 data-aos="fade-right"
                 data-aos-duration="1000"
             >
