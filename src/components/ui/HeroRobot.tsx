@@ -1,20 +1,26 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, useSpring, AnimatePresence } from 'framer-motion'
-import { Send, Loader2 } from 'lucide-react'
+import './ChatLoader.css'
 
 interface HeroRobotProps {
     size?: number
 }
 
 // Prateek's context for the AI
-const PRATEEK_CONTEXT = `You are Prateek's AI assistant. Answer briefly (1-2 sentences).
+const PRATEEK_CONTEXT = `You are a helpful AI assistant on Prateek Gaur's portfolio.
 
-Prateek Gaur - AI Engineer & Full Stack Developer
-Skills: LLMs, RAG, Langchain, CrewAI, Python, FastAPI, React, TypeScript, Next.js
-Experience: AI apps, document analysis, chatbots, automation, RAG systems
-Contact: github.com/DrDarkShadow, linkedin.com/in/prateekgaur1609
+Current State: The user is visiting Prateek's portfolio.
 
-Only answer about Prateek. Be friendly and concise.`
+CRITICAL INSTRUCTION:
+- If the user says "Hi", "Hello", "Hey": JUST say "Hello! How can I help you today?" or "Hi there! What's on your mind?". DO NOT mention Prateek's name, role, or skills.
+- ONLY talk about Prateek if the user EXPLICITLY asks (e.g., "Who is he?", "What does he do?", "Skills?", "Projects?").
+- If asked about Prateek, give a short 1-2 sentence summary.
+
+Reference Material (Use ONLY when asked):
+Name: Prateek Gaur
+Role: AI Engineer & Full Stack Developer
+Skills: LLMs, RAG, Langchain, CrewAI, Python, FastAPI, React
+Contact: github.com/DrDarkShadow, linkedin.com/in/prateekgaur1609`
 
 export function HeroRobot({ size = 280 }: HeroRobotProps) {
     const containerRef = useRef<HTMLDivElement>(null)
@@ -87,7 +93,7 @@ export function HeroRobot({ size = 280 }: HeroRobotProps) {
         <div className="flex flex-col items-center">
             <motion.div
                 ref={containerRef}
-                className="cursor-pointer select-none"
+                className="cursor-pointer select-none relative z-10"
                 style={{ width: size, height: size }}
                 onClick={() => setIsChatOpen(!isChatOpen)}
                 whileHover={{ scale: 1.05 }}
@@ -159,60 +165,76 @@ export function HeroRobot({ size = 280 }: HeroRobotProps) {
                 </svg>
             </motion.div>
 
-            {/* Click hint */}
-            <p className="text-center text-sm text-gray-500 mt-2">
-                {isChatOpen ? '🤖 Ask me anything!' : 'Click to chat with me! 💬'}
-            </p>
+            {/* Click hint - Only visible when chat is closed */}
+            <AnimatePresence>
+                {!isChatOpen && (
+                    <motion.p
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="text-center text-sm text-gray-500 mt-4 cursor-pointer hover:text-emerald-400 transition-colors"
+                        onClick={() => setIsChatOpen(true)}
+                    >
+                        Click to chat with me! 💬
+                    </motion.p>
+                )}
+            </AnimatePresence>
 
-            {/* Chat input - appears under robot */}
+            {/* Chat Container - Synced Animations */}
             <AnimatePresence>
                 {isChatOpen && (
                     <motion.div
-                        initial={{ opacity: 0, y: -20, height: 0 }}
-                        animate={{ opacity: 1, y: 0, height: 'auto' }}
-                        exit={{ opacity: 0, y: -20, height: 0 }}
-                        className="mt-4 w-full max-w-sm"
+                        initial={{ opacity: 0, y: -20, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -20, scale: 0.9 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                        className="absolute top-full mt-8 w-[280px] flex flex-col items-center gap-4 z-50"
                     >
-                        {/* Input box */}
-                        <div className="flex gap-2 p-3 rounded-xl bg-slate-800 border border-emerald-500/50">
+                        {/* Compact Pill Input */}
+                        <div className="w-full relative shadow-xl rounded-full bg-white">
                             <input
                                 type="text"
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
-                                onKeyPress={handleKeyPress}
-                                placeholder="Ask about Prateek..."
-                                className="flex-1 bg-transparent text-white text-sm px-2 focus:outline-none placeholder-gray-500"
+                                onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                                placeholder=""
+                                className="w-full bg-transparent text-slate-800 text-sm px-5 py-3 rounded-full border-2 border-transparent focus:border-white focus:ring-0 placeholder-slate-400 outline-none"
                                 autoFocus
                             />
-                            <button
-                                onClick={handleSend}
-                                disabled={isLoading || !input.trim()}
-                                className="p-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                            >
-                                {isLoading ? (
-                                    <Loader2 size={16} className="animate-spin text-white" />
-                                ) : (
-                                    <Send size={16} className="text-white" />
-                                )}
-                            </button>
                         </div>
 
-                        {/* Response bubble */}
-                        {(response || isLoading) && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="mt-3 p-3 rounded-xl bg-slate-700 text-gray-100 text-sm"
-                            >
-                                {isLoading ? (
-                                    <span className="flex items-center gap-2">
-                                        <Loader2 size={14} className="animate-spin" /> Thinking...
-                                    </span>
-                                ) : (
-                                    response
-                                )}
-                            </motion.div>
-                        )}
+                        {/* Dots Loader - Appears when loading */}
+                        <AnimatePresence>
+                            {isLoading && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                                    className="w-full flex justify-center py-4"
+                                >
+                                    <div className="dots-container scale-75">
+                                        <div className="dot"></div>
+                                        <div className="dot"></div>
+                                        <div className="dot"></div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        {/* Response Bubble - Centered */}
+                        <AnimatePresence>
+                            {!isLoading && response && (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.8, y: 10 }}
+                                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                                    className="w-[110%] -ml-[5%] bg-white p-6 rounded-[24px] rounded-tl-sm shadow-xl text-slate-700 text-sm leading-relaxed border border-white/50 relative break-words text-center"
+                                >
+                                    {response}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </motion.div>
                 )}
             </AnimatePresence>
