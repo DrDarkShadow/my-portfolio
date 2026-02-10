@@ -8,10 +8,29 @@ export function Contact() {
         message: '',
     })
 
-    const handleSubmit = (e: FormEvent) => {
+    const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
+
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault()
-        const mailtoLink = `mailto:gaur.prateek.1609@gmail.com?subject=Portfolio Contact from ${formData.name}&body=${formData.message}%0D%0A%0D%0AFrom: ${formData.email}`
-        window.location.href = mailtoLink
+        setStatus('sending')
+
+        try {
+            const res = await fetch('/api/contact', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData),
+            })
+
+            if (!res.ok) throw new Error('Failed to send')
+
+            setStatus('success')
+            setFormData({ name: '', email: '', message: '' })
+            setTimeout(() => setStatus('idle'), 3000)
+        } catch (error) {
+            console.error(error)
+            setStatus('error')
+            setTimeout(() => setStatus('idle'), 3000)
+        }
     }
 
     return (
@@ -74,8 +93,8 @@ export function Contact() {
                             onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                             required
                         />
-                        <button type="submit" className="btn btn-color-1">
-                            Send Message
+                        <button type="submit" className="btn btn-color-1" disabled={status === 'sending'}>
+                            {status === 'sending' ? 'Sending...' : status === 'success' ? 'Message Sent! ✅' : status === 'error' ? 'Failed ❌' : 'Send Message'}
                         </button>
                     </form>
                 </div>
