@@ -18,7 +18,7 @@ CRITICAL INSTRUCTION:
 
 Reference Material (Use ONLY when asked):
 Name: Prateek Gaur
-Role: AI Engineer and Full Stack Developer
+Role: AI Engineer & Full Stack Developer
 Skills: LLMs, RAG, Langchain, CrewAI, Python, FastAPI, React
 Contact: github.com/DrDarkShadow, linkedin.com/in/prateekgaur1609`
 
@@ -58,7 +58,7 @@ export function HeroRobot({ size = 280 }: HeroRobotProps) {
         const question = input.trim()
         setInput('')
         setIsLoading(true)
-        setResponse('')
+        setResponse('') // Clear previous response
 
         try {
             const res = await fetch('/api/chat', {
@@ -222,11 +222,8 @@ export function HeroRobot({ size = 280 }: HeroRobotProps) {
                                     animate={{ opacity: 1, scale: 1, y: 0 }}
                                     exit={{ opacity: 0, scale: 0.8, y: 10 }}
                                     transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                                    className="w-[320px] max-w-[90vw] bg-white p-5 rounded-2xl shadow-2xl text-slate-800 text-sm leading-relaxed border border-slate-100 relative break-words text-left"
+                                    className="w-[110%] -ml-[5%] bg-white p-6 rounded-[24px] rounded-tl-sm shadow-xl text-slate-700 text-sm leading-relaxed border border-white/50 relative break-words text-center"
                                 >
-                                    {/* Tail */}
-                                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white transform rotate-45 border-t border-l border-slate-100"></div>
-
                                     {response}
                                 </motion.div>
                             )}
