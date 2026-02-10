@@ -7,6 +7,11 @@ export const config = {
 };
 
 export default async function handler(req, res) {
+    // Add GET handler for browser checks
+    if (req.method === 'GET') {
+        return res.status(200).json({ status: 'ok', message: 'Chat API is running. Send POST requests to chat.' });
+    }
+
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
