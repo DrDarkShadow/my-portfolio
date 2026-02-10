@@ -19,7 +19,7 @@ export default async function handler(req, res) {
             },
             body: JSON.stringify({
                 from: 'Portfolio Contact <onboarding@resend.dev>',
-                to: process.env.CONTACT_EMAIL || 'gaur.prateek.1609@gmail.com',
+                to: process.env.CONTACT_EMAIL || 'drdarkshadows@gmail.com',
                 subject: `New Message from ${name}`,
                 html: `
                     <h3>New Contact Form Submission</h3>
