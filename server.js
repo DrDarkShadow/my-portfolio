@@ -17,6 +17,10 @@ if (!NVIDIA_API_KEY) {
     process.exit(1);
 }
 
+app.get('/api/chat', (req, res) => {
+    res.json({ status: 'ok', message: 'Chat API is running. Send POST requests to chat.' });
+});
+
 app.post('/api/chat', async (req, res) => {
     try {
         const { messages } = req.body;
@@ -25,23 +29,22 @@ app.post('/api/chat', async (req, res) => {
             return res.status(400).json({ error: 'Messages required' });
         }
 
-        console.log('Sending to NVIDIA API...');
+        console.log('Sending to NVIDIA API (Streaming)...');
 
         const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${NVIDIA_API_KEY}`,
-                'Accept': 'application/json'
+                'Accept': 'text/event-stream'
             },
             body: JSON.stringify({
-                model: 'moonshotai/kimi-k2.5',
+                model: 'meta/llama-3.1-8b-instruct',
                 messages: messages,
-                max_tokens: 256, // Reduced for speed
-                temperature: 0.7, // Lower temperature for more direct answers
+                max_tokens: 200,
+                temperature: 0.7,
                 top_p: 1.00,
-                stream: false,
-                // chat_template_kwargs: { thinking: true } // Disabled to remove "thinking" delay
+                stream: true // Enable Streaming
             })
         });
 
@@ -51,14 +54,43 @@ app.post('/api/chat', async (req, res) => {
             return res.status(500).json({ error: 'AI service error: ' + error });
         }
 
-        const data = await response.json();
-        const aiMessage = data.choices?.[0]?.message?.content || "Couldn't generate response";
+        // Set headers for SSE
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
 
-        console.log('AI Response:', aiMessage);
-        res.json({ message: aiMessage });
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+                if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+                    try {
+                        const data = JSON.parse(line.slice(6));
+                        const content = data.choices[0]?.delta?.content || '';
+                        if (content) {
+                            res.write(content); // Write directly to response
+                        }
+                    } catch (e) {
+                        // Ignore incomplete chunks
+                    }
+                }
+            }
+        }
+
+        res.end();
+
     } catch (error) {
         console.error('Error:', error);
-        res.status(500).json({ error: 'Server error' });
+        if (!res.headersSent) {
+            res.status(500).json({ error: 'Server error' });
+        }
     }
 });
 

@@ -58,7 +58,7 @@ export function HeroRobot({ size = 280 }: HeroRobotProps) {
         const question = input.trim()
         setInput('')
         setIsLoading(true)
-        setResponse('')
+        setResponse('') // Clear previous response
 
         try {
             const res = await fetch('/api/chat', {
@@ -73,8 +73,24 @@ export function HeroRobot({ size = 280 }: HeroRobotProps) {
             })
 
             if (!res.ok) throw new Error('Failed')
-            const data = await res.json()
-            setResponse(data.message)
+            if (!res.body) throw new Error('No readable stream')
+
+            const reader = res.body.getReader()
+            const decoder = new TextDecoder()
+            let done = false
+            let accumulatedResponse = ''
+
+            // Stream reading loop
+            while (!done) {
+                const { value, done: doneReading } = await reader.read()
+                done = doneReading
+                if (value) {
+                    const chunkValue = decoder.decode(value, { stream: true })
+                    accumulatedResponse += chunkValue
+                    setResponse(prev => prev + chunkValue)
+                }
+            }
+
         } catch {
             setResponse("Oops! I'm having trouble. Try again! 🤖")
         } finally {
