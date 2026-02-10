@@ -1,21 +1,21 @@
 // Vercel Serverless Function for AI Chat
 // Uses NVIDIA API with Llama 3.1 8B Instruct model
+// Using Node.js Runtime for better compatibility
 
 export const config = {
-    runtime: 'edge', // Edge runtime is better for streaming
-    regions: ['iad1'], // Optional: Specify region close to users
+    maxDuration: 60, // Increase timeout for slower connections
 };
 
-export default async function handler(req) {
+export default async function handler(req, res) {
     if (req.method !== 'POST') {
-        return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
+        return res.status(405).json({ error: 'Method not allowed' });
     }
 
     try {
-        const { messages } = await req.json();
+        const { messages } = req.body;
 
         if (!messages || !Array.isArray(messages)) {
-            return new Response(JSON.stringify({ error: 'Messages array required' }), { status: 400 });
+            return res.status(400).json({ error: 'Messages array required' });
         }
 
         const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
@@ -38,53 +38,46 @@ export default async function handler(req) {
         if (!response.ok) {
             const error = await response.text();
             console.error('NVIDIA API error:', error);
-            return new Response(JSON.stringify({ error: 'AI service unavailable: ' + error }), { status: 500 });
+            return res.status(500).json({ error: 'AI service unavailable: ' + error });
         }
 
-        // Create a transform stream to process the SSE chunks
-        const stream = new ReadableStream({
-            async start(controller) {
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
+        // Set headers for SSE
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
 
-                try {
-                    while (true) {
-                        const { done, value } = await reader.read();
-                        if (done) break;
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
 
-                        const chunk = decoder.decode(value);
-                        const lines = chunk.split('\n');
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-                        for (const line of lines) {
-                            if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-                                try {
-                                    const data = JSON.parse(line.slice(6));
-                                    const content = data.choices[0]?.delta?.content || '';
-                                    if (content) {
-                                        controller.enqueue(new TextEncoder().encode(content));
-                                    }
-                                } catch (e) {
-                                    console.error('Error parsing chunk', e);
-                                }
-                            }
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+                if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+                    try {
+                        const data = JSON.parse(line.slice(6));
+                        const content = data.choices[0]?.delta?.content || '';
+                        if (content) {
+                            res.write(content); // Write directly to response
                         }
+                    } catch (e) {
+                        // Ignore incomplete chunks
                     }
-                } finally {
-                    controller.close();
                 }
             }
-        });
+        }
 
-        return new Response(stream, {
-            headers: {
-                'Content-Type': 'text/event-stream',
-                'Cache-Control': 'no-cache',
-                'Connection': 'keep-alive',
-            },
-        });
+        res.end();
 
     } catch (error) {
         console.error('Chat API error:', error);
-        return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500 });
+        if (!res.headersSent) {
+            return res.status(500).json({ error: 'Internal server error' });
+        }
+        res.end();
     }
 }
