@@ -10,7 +10,6 @@ export default async function handler(req, res) {
     // Add OPTIONS handler for CORS preflight
     if (req.method === 'OPTIONS') {
         res.setHeader('Allow', 'GET, POST, OPTIONS');
-        // Handle CORS headers if needed (though next.js/vercel usually handles this)
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
         return res.status(200).end();
@@ -37,7 +36,7 @@ export default async function handler(req, res) {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${process.env.NVIDIA_API_KEY}`,
-                'Accept': 'text/event-stream'
+                'Accept': 'application/json'
             },
             body: JSON.stringify({
                 model: 'meta/llama-3.1-8b-instruct',
@@ -45,7 +44,7 @@ export default async function handler(req, res) {
                 max_tokens: 200,
                 temperature: 0.7,
                 top_p: 1.00,
-                stream: true // ENABLE STREAMING
+                stream: false // DISABLED STREAMING
             })
         });
 
@@ -55,43 +54,13 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: 'AI service unavailable: ' + error });
         }
 
-        // Set headers for SSE
-        res.setHeader('Content-Type', 'text/event-stream');
-        res.setHeader('Cache-Control', 'no-cache');
-        res.setHeader('Connection', 'keep-alive');
+        const data = await response.json();
+        const aiMessage = data.choices?.[0]?.message?.content || "I couldn't generate a response.";
 
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            const chunk = decoder.decode(value);
-            const lines = chunk.split('\n');
-
-            for (const line of lines) {
-                if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-                    try {
-                        const data = JSON.parse(line.slice(6));
-                        const content = data.choices[0]?.delta?.content || '';
-                        if (content) {
-                            res.write(content); // Write directly to response
-                        }
-                    } catch (e) {
-                        // Ignore incomplete chunks
-                    }
-                }
-            }
-        }
-
-        res.end();
+        return res.status(200).json({ message: aiMessage });
 
     } catch (error) {
         console.error('Chat API error:', error);
-        if (!res.headersSent) {
-            return res.status(500).json({ error: 'Internal server error' });
-        }
-        res.end();
+        return res.status(500).json({ error: 'Internal server error' });
     }
 }
