@@ -7,6 +7,15 @@ export const config = {
 };
 
 export default async function handler(req, res) {
+    // Add OPTIONS handler for CORS preflight
+    if (req.method === 'OPTIONS') {
+        res.setHeader('Allow', 'GET, POST, OPTIONS');
+        // Handle CORS headers if needed (though next.js/vercel usually handles this)
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+        return res.status(200).end();
+    }
+
     // Add GET handler for browser checks
     if (req.method === 'GET') {
         return res.status(200).json({ status: 'ok', message: 'Chat API is running. Send POST requests to chat.' });
