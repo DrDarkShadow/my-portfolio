@@ -8,12 +8,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Token from environment variable
-const HF_TOKEN = process.env.HF_TOKEN;
+// NVIDIA API Key from environment variable
+const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY;
 
-if (!HF_TOKEN) {
-    console.error('❌ HF_TOKEN environment variable not set!');
-    console.log('Run: set HF_TOKEN=your_token_here (Windows)');
+if (!NVIDIA_API_KEY) {
+    console.error('❌ NVIDIA_API_KEY environment variable not set!');
+    console.log('Run: set NVIDIA_API_KEY=your_key_here (Windows)');
     process.exit(1);
 }
 
@@ -25,26 +25,30 @@ app.post('/api/chat', async (req, res) => {
             return res.status(400).json({ error: 'Messages required' });
         }
 
-        console.log('Sending to HuggingFace...');
+        console.log('Sending to NVIDIA API...');
 
-        const response = await fetch('https://router.huggingface.co/v1/chat/completions', {
+        const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${HF_TOKEN}`
+                'Authorization': `Bearer ${NVIDIA_API_KEY}`,
+                'Accept': 'application/json'
             },
             body: JSON.stringify({
-                model: 'mistralai/Mistral-7B-Instruct-v0.2:featherless-ai',
+                model: 'moonshotai/kimi-k2.5',
                 messages: messages,
-                max_tokens: 200,
-                temperature: 0.7
+                max_tokens: 256, // Reduced for speed
+                temperature: 0.7, // Lower temperature for more direct answers
+                top_p: 1.00,
+                stream: false,
+                // chat_template_kwargs: { thinking: true } // Disabled to remove "thinking" delay
             })
         });
 
         if (!response.ok) {
             const error = await response.text();
-            console.error('HF Error:', error);
-            return res.status(500).json({ error: 'AI service error' });
+            console.error('NVIDIA Error:', error);
+            return res.status(500).json({ error: 'AI service error: ' + error });
         }
 
         const data = await response.json();

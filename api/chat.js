@@ -1,5 +1,9 @@
 // Vercel Serverless Function for AI Chat
-// Uses HuggingFace Router with Mistral model
+// Uses NVIDIA API with Moonshot Kimi model
+
+export const config = {
+    maxDuration: 60, // Increase timeout for "thinking" model
+};
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -13,24 +17,28 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'Messages array required' })
         }
 
-        const response = await fetch('https://router.huggingface.co/v1/chat/completions', {
+        const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.HF_TOKEN}`
+                'Authorization': `Bearer ${process.env.NVIDIA_API_KEY}`,
+                'Accept': 'application/json'
             },
             body: JSON.stringify({
-                model: 'mistralai/Mistral-7B-Instruct-v0.2:featherless-ai',
+                model: 'moonshotai/kimi-k2.5',
                 messages: messages,
-                max_tokens: 200,
-                temperature: 0.7
+                max_tokens: 256, // Reduced for speed
+                temperature: 0.7, // Lower temperature for more direct answers
+                top_p: 1.00,
+                stream: false,
+                // chat_template_kwargs: { thinking: true } // Disabled to remove "thinking" delay
             })
         })
 
         if (!response.ok) {
             const error = await response.text()
-            console.error('HuggingFace API error:', error)
-            return res.status(500).json({ error: 'AI service unavailable' })
+            console.error('NVIDIA API error:', error)
+            return res.status(500).json({ error: 'AI service unavailable: ' + error })
         }
 
         const data = await response.json()
